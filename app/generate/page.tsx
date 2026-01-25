@@ -1,11 +1,11 @@
-import React from "react";
+"use client";
 
 export default function GeneratePage() {
   return (
-    <main className="flex min-h-screen items-center justify-center">
-      <h1 className="text-3xl font-semibold">
-        AI Video Generator
+    <div className="min-h-screen flex items-center justify-center">
+      <h1 className="text-2xl font-bold">
+        Generate Page
       </h1>
-    </main>
+    </div>
   );
 }
