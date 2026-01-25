@@ -9,3 +9,4 @@ export default function GeneratePage() {
     </div>
   );
 }
+export {};
