@@ -3,120 +3,122 @@
 import { useState } from "react";
 
 const LANGUAGES = [
-  "English",
-  "Hindi",
-  "Marathi",
-  "Gujarati",
-  "Kannada",
-  "Tamil",
-  "Rajasthani",
+  "english",
+  "hindi",
+  "marathi",
+  "gujarati",
+  "kannada",
+  "tamil",
+  "rajasthani",
 ];
 
-const GENERATION_TYPES = [
-  { id: "script_to_video", label: "Script → Video" },
-  { id: "image_to_video", label: "Image → Video" },
-];
-
-export default function GeneratePage() {
+export default function ReelWizard() {
+  const [step, setStep] = useState(1);
   const [topic, setTopic] = useState("");
-  const [language, setLanguage] = useState("");
-  const [generationType, setGenerationType] = useState("");
+  const [language, setLanguage] = useState("english");
+  const [mode, setMode] = useState("script_to_video");
+  const [seconds, setSeconds] = useState(10);
+  const [loading, setLoading] = useState(false);
+  const [jobId, setJobId] = useState(null);
 
-  const canSelectLanguage = topic.trim().length > 0;
-  const canSelectType = language.length > 0;
-  const canGenerate = generationType.length > 0;
+  const submit = async () => {
+    setLoading(true);
+    const res = await fetch("https://ai-reels-backend.onrender.com/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        topic,
+        language,
+        mode,
+        seconds,
+      }),
+    });
 
-  const handleGenerate = () => {
-    const payload = {
-      topic,
-      language,
-      generation_type: generationType,
-    };
-
-    console.log("FINAL PAYLOAD →", payload);
-    // 👉 yahi payload backend /generate API ko jayega
+    const data = await res.json();
+    setJobId(data.job_id);
+    setLoading(false);
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-black via-zinc-900 to-black text-white">
-      <div className="w-full max-w-xl p-8 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl space-y-6">
+    <div className="min-h-screen flex items-center justify-center bg-black text-white p-4">
+      <div className="w-full max-w-xl bg-zinc-900 p-6 rounded-2xl shadow-xl">
+        <h1 className="text-2xl font-bold mb-4">AI Reel Generator</h1>
 
-        <h1 className="text-2xl font-bold text-center">
-          AI Reel Generator
-        </h1>
+        {step === 1 && (
+          <>
+            <label className="block mb-2">Topic</label>
+            <input
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              className="w-full p-2 rounded bg-zinc-800"
+              placeholder="Enter reel topic"
+            />
+            <button
+              onClick={() => setStep(2)}
+              disabled={!topic}
+              className="mt-4 w-full bg-blue-600 p-2 rounded"
+            >
+              Next
+            </button>
+          </>
+        )}
 
-        {/* 1️⃣ Topic */}
-        <div className="space-y-2">
-          <label className="text-sm text-gray-300">
-            Topic
-          </label>
-          <input
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            placeholder="Enter reel topic..."
-            className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
-
-        {/* 2️⃣ Language */}
-        {canSelectLanguage && (
-          <div className="space-y-2">
-            <label className="text-sm text-gray-300">
-              Language
-            </label>
+        {step === 2 && (
+          <>
+            <label className="block mb-2">Language</label>
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-black/40 border border-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full p-2 rounded bg-zinc-800"
             >
-              <option value="">Select language</option>
-              {LANGUAGES.map((lang) => (
-                <option key={lang} value={lang}>
-                  {lang}
+              {LANGUAGES.map((l) => (
+                <option key={l} value={l}>
+                  {l.toUpperCase()}
                 </option>
               ))}
             </select>
-          </div>
+            <button
+              onClick={() => setStep(3)}
+              className="mt-4 w-full bg-blue-600 p-2 rounded"
+            >
+              Next
+            </button>
+          </>
         )}
 
-        {/* 3️⃣ Generation Type */}
-        {canSelectType && (
-          <div className="space-y-3">
-            <label className="text-sm text-gray-300">
-              Generation Type
-            </label>
+        {step === 3 && (
+          <>
+            <label className="block mb-2">Mode</label>
+            <select
+              value={mode}
+              onChange={(e) => setMode(e.target.value)}
+              className="w-full p-2 rounded bg-zinc-800"
+            >
+              <option value="script_to_video">Script → Video</option>
+              <option value="image_to_video">Image → Video</option>
+            </select>
 
-            <div className="grid grid-cols-2 gap-4">
-              {GENERATION_TYPES.map((type) => (
-                <button
-                  key={type.id}
-                  onClick={() => setGenerationType(type.id)}
-                  className={`p-4 rounded-xl border transition ${
-                    generationType === type.id
-                      ? "border-indigo-500 bg-indigo-500/20"
-                      : "border-white/20 bg-black/30 hover:bg-white/10"
-                  }`}
-                >
-                  {type.label}
-                </button>
-              ))}
-            </div>
-          </div>
+            <label className="block mt-4 mb-2">Duration (seconds)</label>
+            <input
+              type="number"
+              value={seconds}
+              onChange={(e) => setSeconds(+e.target.value)}
+              className="w-full p-2 rounded bg-zinc-800"
+            />
+
+            <button
+              onClick={submit}
+              className="mt-6 w-full bg-green-600 p-2 rounded"
+            >
+              {loading ? "Generating..." : "Generate Reel"}
+            </button>
+          </>
         )}
 
-        {/* 4️⃣ Generate */}
-        <button
-          disabled={!canGenerate}
-          onClick={handleGenerate}
-          className={`w-full py-4 rounded-xl font-semibold transition ${
-            canGenerate
-              ? "bg-indigo-600 hover:bg-indigo-700"
-              : "bg-gray-600 cursor-not-allowed"
-          }`}
-        >
-          Generate Reel
-        </button>
+        {jobId && (
+          <p className="mt-4 text-sm text-green-400">Job ID: {jobId}</p>
+        )}
       </div>
-    </main>
+    </div>
   );
 }
